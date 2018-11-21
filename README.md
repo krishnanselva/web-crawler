@@ -16,11 +16,11 @@ Steps to run Web Crawler:
 
 4. Start the app:
    
-   `node app.js https://wiprodigital.com ../sitemap.txt`
+   `node app.js https://abcd.com ../sitemap.txt`
 
 5. Check the logs for below output:
 
-    `Error requesting https://wiprodigital.com/people/jayraj-nair.`
+    `Error requesting https://abcd.com/any/some.`
 
 6. App stops after couple of minutes on completion of one cycle of web crawling   
   `takes about couple of minutes to list 8343 urls`
