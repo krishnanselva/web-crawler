@@ -1,6 +1,6 @@
 Problem description : Refer ./Web_Crawler_Requirement_Spec.MD 
 
-Steps to run web crawler:
+Steps to run Web Crawler:
 
 1. Clone the project:
 
@@ -10,24 +10,31 @@ Steps to run web crawler:
 
    `npm install`
 
-3. Start the app:
-   
-   `node .\routes\web-crawler-rxjs.js https://wiprodigital.com`
+3. Run unit test:
 
-4. Check the logs for below output:
+   `npm run test`   
+
+4. Start the app:
+   
+   `node app.js https://wiprodigital.com ../sitemap.txt`
+
+5. Check the logs for below output:
 
     `Error requesting https://wiprodigital.com/people/jayraj-nair.`
 
-5. App stops after couple of minutes on completion of one cycle of web crawling   
+6. App stops after couple of minutes on completion of one cycle of web crawling   
   `takes about couple of minutes to list 8343 urls`
 
-6. Sitemap generation:
+7. Sitemap generation:
 
     `App should have generated ../sitemap.txt file under the parent folder of web-clawler folder`
 
-7. Assumptions:
+8. Assumptions:
     ```Unreachable url are logged in console.
+    Concurrent requests are limited to 5 (maxConcurrentReq)
     Hash is not trimmed in the url.
     Query parameters are not removed.
-    Unit testing/TDD was not done due to limited time and experimental nature of the task.
-    Static resource url are not segregated.
+    Unit testing/TDD done to minimum - just to demonstrate the skill.
+    Static resource url are not segregated separately.
+    Background images are not extracted.
+    Url in the argument is expected to have the protocol (http or https)
