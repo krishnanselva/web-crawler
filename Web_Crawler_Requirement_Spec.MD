@@ -1,14 +1,14 @@
 Web Crawler
 
 Your task is to write a simple web crawler in a language of your choice.
-The crawler should be limited to one domain. Given a starting URL – say wiprodigital.com - it should visit all pages within the domain, but not follow the links to external sites such as Google or Twitter.
+The crawler should be limited to one domain. Given a starting URL – say example.com - it should visit all pages within the domain, but not follow the links to external sites such as Google or Twitter.
 
-Input: a starting url. Viz. wiprodigital.com, wipro.com etc. 
+Input: a starting url. Viz. example.com, abc.com etc. 
 Output: A simple site map (xml OR json OR plain text) file. The site map should show other pages under the same domain, links to static content such as images and to external URLs.
 
 Example: 
 
-Input: wiprodigital.com
+Input: example.com
 Output: 
 
 Plain text:
