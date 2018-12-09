@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "web-scraper",
+            "program": "${workspaceFolder}\\web-scraper.js",
+            "args": [
+                "https://www.halfords.com/motoring/engine-oils-fluids/engine-oil",
+                "5W",
+                "30",
+                "5"
+            ]
+        }
+    ]
+}

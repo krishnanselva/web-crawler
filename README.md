@@ -38,3 +38,6 @@ Steps to run Web Crawler:
     Static resource url are not segregated separately.
     Background images are not extracted.
     Url in the argument is expected to have the protocol (http or https)
+
+
+     set DEBUG=express:* & node web-scraper.js
