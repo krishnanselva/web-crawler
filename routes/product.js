@@ -1,7 +1,8 @@
-var product = function (title,company, brand, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, url, promotion) {
+var product = function (title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, retailer, country, url, promotion) {
     this.title = title;
     this.company = company;
     this.brand = brand;
+    this.variant = variant;
     this.sellPrice = sellPrice;
     this.saving = saving;
     this.wasPrice = wasPrice;
@@ -10,7 +11,10 @@ var product = function (title,company, brand, sellPrice, saving, wasPrice, grade
     this.acea = acea;
     this.freeDeliveryThreshold = freeDeliveryThreshold;
     this.deliveryCharge = deliveryCharge;
+    this.retailer = retailer;
+    this.country = country;
     this.url = url;
     this.promotion = promotion;
+    this.pullTime = new Date().toString();
 }
 module.exports = product;
