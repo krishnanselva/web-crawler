@@ -12,8 +12,8 @@ var webScrapService = function () {
     const maxConcurrentReq = 5;
     const baseUrl = 'https://www.halfords.com/motoring/engine-oils-fluids/engine-oil';
     const now = new Date();
-
-    const fileName = `../halfords-engine-oil-${now.getFullYear()}-${now.getMonth()}-${now.getDay()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}.csv`;
+    const headers = { title: 'Listed Product Name', company: 'Master Brand', brand: 'Product Brand', variant: 'Product Variant', sellPrice: 'Net Price', saving: 'Saving', wasPrice: 'Original Price', grade: 'Viscosity', size: 'Pack Size', acea: 'ACEA Specifications', freeDeliveryThreshold: 'Free Delivery Threshold', deliveryCharge: 'Delivery Charge', retailer: 'Retailer', country: 'Country', url: 'Url', sku: 'SKU', promotion: 'Promotion', extractDate: 'Extract Date', extractTime: 'Extract Time', extractDateTime: 'Day,Extract Date & Time' };
+    const fileName = `../halfords-engine-oil-${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}.csv`;
     const allUrl$ = new BehaviorSubject(baseUrl);
     fs.unlink(fileName, (error) => {
         if (error) {
@@ -25,7 +25,7 @@ var webScrapService = function () {
 
     this.startScrap = () => {
         const product = new Product();
-        writeToFile(getKeys(product));
+        writeToFile(getRowHeader(product));
         const uniqueUrl$ = allUrl$.pipe(
             // only crawl base url
             //   filter(url => url.includes(baseUrl)),
@@ -82,18 +82,19 @@ var webScrapService = function () {
                 const sellPrice = getData($, '#stickyAddToBasketPrice');
                 const saving = getData($, '.savingValue');
                 const wasPrice = getData($, '.wasValue');
-                let grade = getData($, '#pdpMirakl > div:nth-child(3) > div.productInfoTabs > ul.tabContent > li.specificationDetails > table > tbody > tr:nth-child(1) > td');
-                let size = getData($, '#pdpMirakl > div:nth-child(3) > div.productInfoTabs > ul.tabContent > li.specificationDetails > table > tbody > tr:nth-child(4) > td');
+                const specDataSelector = '#pdpMirakl > div:nth-child(3) > div.productInfoTabs > ul.tabContent > li.specificationDetails > table > tbody > tr';
+                let grade = getSpecData($, specDataSelector, 'Grade:');
+                let size = getSpecData($, specDataSelector, 'Size:');
+                const acea = getSpecData($, specDataSelector, 'ACEA:');
                 grade = grade ? grade : spec.grade ? spec.grade : grade;
                 size = size ? size : spec.size ? spec.size : size;
-                const acea = getData($, '#pdpMirakl > div:nth-child(3) > div.productInfoTabs > ul.tabContent > li.specificationDetails > table > tbody > tr:nth-child(5) > td');
                 const deliveryInfo = getData($, '#deliveryOptions > tbody > tr:nth-child(1) > td:nth-child(2) > h6');
                 const deliveryInfoArray = deliveryInfo.match(/£\d+(?:\.\d+)?/g);
                 const deliveryCharge = deliveryInfoArray && deliveryInfoArray.length > 0 ? deliveryInfoArray[0] : '';
                 const freeDeliveryThreshold = deliveryInfoArray && deliveryInfoArray.length > 1 ? deliveryInfoArray[1] : '';
-
-                const product = new Product(title, spec.company, spec.brand, spec.variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, 'Halfords', 'UK', url, '');
-                writeToFile(getValues(product));
+                const sku = getData($, '#PDPProductId');
+                const product = new Product(title, spec.company, spec.brand, spec.variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, 'Halfords', 'UK', url, sku, '');
+                writeToFile(getRowData(product));
             }
 
         }
@@ -106,9 +107,9 @@ var webScrapService = function () {
         let titleTemp = title;
         if (grade && grade.length > 0) {
             spec.grade = grade[0];
-             titleTemp = titleTemp.replace(gradeReg, '');
+            titleTemp = titleTemp.replace(gradeReg, '');
         }
-        
+
         //remove size
         const sizeReg = /(\d+\s?L(itres?)?)/ig;
         const size = titleTemp.match(sizeReg);
@@ -116,7 +117,7 @@ var webScrapService = function () {
             spec.size = size[0];
             titleTemp = titleTemp.replace(sizeReg, '');
         }
-        
+
         //remove oil
         titleTemp = titleTemp.replace(/(Oil)/ig, '').trim();
         let titleArray = titleTemp.split(' ');
@@ -136,7 +137,25 @@ var webScrapService = function () {
         return str.replace(/[^a-z0-9]/ig, '');
     }
     getData: function getData(page$, selector) {
-        return page$(selector) ? page$(selector).text().trim().replace(/\n\t/g, '') : '';
+        //TODO val() doesn't work?
+        //return page$(selector) ? page$(selector).val() : ''; 
+        return page$(selector) ? page$(selector).text().trim().replace(/\r?\n?\t?/g, '') : '';
+    }
+    getSpecData: function getSpecData(page$, specSelector, specLabelRequired) {
+        let specData = '';
+        page$(specSelector).each((index, element) => {
+            if (element.children.length > 3) {
+                const specLabel = element.children[1].firstChild.data;
+                if (specLabel === specLabelRequired) {
+                    const specValue = element.children[3].firstChild.data;
+                    if (specValue) {
+                        specData = specValue.trim().replace(/\r?\n?\t?/g, '');
+                    }
+
+                }
+            }
+        });
+        return specData;
     }
     writeToFile: function writeToFile(rowString) {
         fs.appendFile(fileName, rowString, (error) => {
@@ -148,11 +167,11 @@ var webScrapService = function () {
         });
     }
 
-    getKeys: function getKeys(domainObject) {
+    getRowHeader: function getRowHeader(domainObject) {
         const rowArray = Object.keys(domainObject);
-        return `${rowArray.toString().toUpperCase()}\n`;
+        return `${rowArray.map(col => headers[col])}\n`;
     }
-    getValues: function getValues(domainObject) {
+    getRowData: function getRowData(domainObject) {
         const rowArray = Object.keys(domainObject).map(col => domainObject[col]);
         return `${rowArray}\n`;
     }

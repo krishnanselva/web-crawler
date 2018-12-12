@@ -1,4 +1,4 @@
-var product = function (title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, retailer, country, url, promotion) {
+var product = function (title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, retailer, country, url, sku, promotion) {
     this.title = title;
     this.company = company;
     this.brand = brand;
@@ -14,7 +14,11 @@ var product = function (title, company, brand, variant, sellPrice, saving, wasPr
     this.retailer = retailer;
     this.country = country;
     this.url = url;
+    this.sku = sku;
     this.promotion = promotion;
-    this.pullTime = new Date().toString();
+    const now = new Date();
+    this.extractDate = `${now.getUTCDate()}/${now.getUTCMonth()}/${now.getUTCFullYear()}`;
+    this.extractTime = `${now.getUTCHours()}:${now.getUTCMinutes()}:${now.getUTCSeconds()}`;
+    this.extractDateTime = now.toUTCString();
 }
 module.exports = product;
