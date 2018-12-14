@@ -20,5 +20,5 @@ var product = function (title, company, brand, variant, sellPrice, saving, wasPr
     this.extractDate = `${now.getUTCDate()}/${now.getUTCMonth()}/${now.getUTCFullYear()}`;
     this.extractTime = `${now.getUTCHours()}:${now.getUTCMinutes()}:${now.getUTCSeconds()}`;
     this.extractDateTime = now.toUTCString();
-}
+};
 module.exports = product;
