@@ -3,8 +3,8 @@ const {
 const {
     resolve
 } = require('url');
-const ProductSpec = require('./product-spec');
-const ScrapService = require('./scrap-service');
+const ProductSpec = require('../domain/product-spec');
+const ScrapService = require('../service/scrap-service');
 
 var scrapHalfords = function () {
 

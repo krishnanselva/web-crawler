@@ -17,8 +17,8 @@ const {
     resolve
 } = require('url');
 const fs = require('fs');
-const Product = require('./product');
-const ProductSpec = require('./product-spec');
+const Product = require('../domain/product');
+const ProductSpec = require('../domain/product-spec');
 const maxConcurrentReq = 5;
 const headers = {
     title: 'Listed Product Name',
@@ -45,7 +45,7 @@ const headers = {
 const now = new Date();
 
 var scrapService = function (retailer, country, allUrl$, scrapUrl) {
-    const fileName = `../Engine-oil-${retailer}-${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-T-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}.csv`;
+    const fileName = `../Engine-oil-${retailer.replace(/\s/g,'-')}-${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-T-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}.csv`;
     startScrap(allUrl$, scrapUrl);
 
     function startScrap(allUrl$, scrapUrl) {
@@ -54,11 +54,11 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
             // only crawl base url
             //   filter(url => url.includes(baseUrl)),
             // normalize url for comparison
-            map(url => normalizeUrl(url, {
-                removeTrailingSlash: true,
-                removeQueryParameters: [],
-                stripHash: true
-            })),
+            // map(url => normalizeUrl(url, {
+            //     removeTrailingSlash: true,
+            //     removeQueryParameters: [],
+            //     stripHash: true
+            // })),
             // distinct is a RxJS operator that filters out duplicated values
             distinct()
         );
@@ -66,6 +66,8 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
         const urlAndDOM$ = uniqueUrl$.pipe(
             mergeMap(
                 url => {
+                    //https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521776031&1&cc5_248
+                    console.log(url);
                     return from(rp(url)).pipe(
                         catchError(error => {
                             const {
