@@ -67,7 +67,7 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
             mergeMap(
                 url => {
                     //https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521776031&1&cc5_248
-                    console.log(url);
+                    // console.log(url);
                     return from(rp(url)).pipe(
                         catchError(error => {
                             const {

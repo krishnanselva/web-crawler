@@ -11,6 +11,7 @@ var scrapEuroCarParts = function () {
     // https://www.eurocarparts.com/engine-oils?Categories=Engine_Oil
     // https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils
     const baseUrl = 'https://www.eurocarparts.com/engine-oils?Categories=Engine_Oil';
+    // const baseUrl = 'https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521776062&1';
     const allUrl$ = new BehaviorSubject(baseUrl);
     const scrapService = new ScrapService('Euro Car Parts', 'UK', allUrl$, scrapUrl);
 
@@ -44,7 +45,7 @@ var scrapEuroCarParts = function () {
                 allUrl$.next(absoluteUrl);
             }
         });
-        const productLocation = 'body > section > section.container.content-section.cookiebar > section.row.product-detail-section > div.product-detail-inner > div.col-xs-12.col-sm-6.col-md-6';
+        const productLocation = 'body > section > section.container.content-section > section.row.product-detail-section > div.product-detail-inner > div.col-xs-12.col-sm-6.col-md-6';
         const titleSelector = `${productLocation} > h1 > span.heading`;
         if ($(titleSelector)) {
             const title = scrapService.getData($, titleSelector);
@@ -58,10 +59,21 @@ var scrapEuroCarParts = function () {
 
                 let grade = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(2) > span.value');
                 let size = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(4) > span.value');
-                const productDetailSpec = scrapService.getData($, '#tablist1-panel1 > ul > li:nth-child(6)');
-                const productDetailSpecArray = productDetailSpec.match(/(ACEA.*,)/g);
-                const acea = productDetailSpecArray && productDetailSpecArray.length > 0 ? productDetailSpecArray.replace(/(ACEA\s*)/, '') : '';
+                let acea = '';
+                //#tablist1-panel1 > ul > li:nth-child(5)
+                $('div[itemprop="description"] > ul > li').each((index, element) => {
+                    const productDetailSpec = element.firstChild.data;
+                    const productDetailSpecArray = productDetailSpec && productDetailSpec.split(/,|;|\s/g);
 
+                    if (productDetailSpecArray && productDetailSpecArray.length > 0) {
+                        productDetailSpecArray.forEach((e, i) => {
+                            if ('ACEA' === e) {
+                                acea = !acea && productDetailSpecArray.length > i ? productDetailSpecArray[i + 1] : acea;
+                            }
+                        })
+                    }
+
+                });
                 grade = grade ? grade : spec.grade ? spec.grade : grade;
                 size = size ? size : spec.size ? spec.size : size;
 
@@ -71,7 +83,8 @@ var scrapEuroCarParts = function () {
                 const deliveryCharge = deliveryInfoArray && deliveryInfoArray.length > 0 ? deliveryInfoArray[0] : '';
                 const freeDeliveryThreshold = deliveryInfoArray && deliveryInfoArray.length > 1 ? deliveryInfoArray[1] : '';
 
-                const sku = scrapService.getData($, `${productLocation} > h1 > span.pro-detail`);
+                let sku = scrapService.getData($, `${productLocation} > h1 > span.pro-detail`);
+                sku = sku.replace('Product Code: ', '')
 
                 const promotion = '';
                 scrapService.appendRow(title, spec.company, spec.brand, spec.variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, url, sku, promotion);
@@ -100,7 +113,7 @@ var scrapEuroCarParts = function () {
         }
 
         //remove oil
-        titleTemp = titleTemp.replace(/(Engine Oil)|(Oil)/ig, '').trim();
+        titleTemp = titleTemp.replace(/(Engine)|(Oil)|-/ig, '').trim();
         let titleArray = titleTemp.split(' ');
 
         spec.company = titleArray[0];
