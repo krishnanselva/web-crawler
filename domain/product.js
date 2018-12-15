@@ -17,7 +17,7 @@ var product = function (title, company, brand, variant, sellPrice, saving, wasPr
     this.sku = sku;
     this.promotion = promotion;
     const now = new Date();
-    this.extractDate = `${now.getUTCDate()}/${now.getUTCMonth()}/${now.getUTCFullYear()}`;
+    this.extractDate = `${now.getUTCDate()}/${now.getUTCMonth()+1}/${now.getUTCFullYear()}`;
     this.extractTime = `${now.getUTCHours()}:${now.getUTCMinutes()}:${now.getUTCSeconds()}`;
     this.extractDateTime = now.toUTCString();
 };

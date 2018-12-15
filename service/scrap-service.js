@@ -25,7 +25,7 @@ const headers = {
     company: 'Master Brand',
     brand: 'Product Brand',
     variant: 'Product Variant',
-    sellPrice: 'Net Price',
+    sellPrice: 'Current Price',
     saving: 'Saving',
     wasPrice: 'Original Price',
     grade: 'Viscosity',

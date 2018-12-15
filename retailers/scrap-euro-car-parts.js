@@ -10,8 +10,9 @@ const ScrapService = require('../service/scrap-service');
 var scrapEuroCarParts = function () {
     // https://www.eurocarparts.com/engine-oils?Categories=Engine_Oil
     // https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils
-    const baseUrl = 'https://www.eurocarparts.com/engine-oils?Categories=Engine_Oil';
-    // const baseUrl = 'https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521776062&1';
+    let baseUrl = 'https://www.eurocarparts.com/engine-oils?Categories=Engine_Oil';
+    // baseUrl = 'https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521776062&1';
+    // baseUrl = 'https://www.eurocarparts.com/ecp/p/car-parts/engine-parts/engine-parts1/engine-oils/?521771951&1';
     const allUrl$ = new BehaviorSubject(baseUrl);
     const scrapService = new ScrapService('Euro Car Parts', 'UK', allUrl$, scrapUrl);
 
@@ -58,25 +59,24 @@ var scrapEuroCarParts = function () {
                 const saving = ''; //TODO saving      
 
                 let grade = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(2) > span.value');
+                grade = grade ? grade : spec.grade ? spec.grade : grade;
                 let size = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(4) > span.value');
+                size = size ? size : spec.size ? spec.size : size;
                 let acea = '';
                 //#tablist1-panel1 > ul > li:nth-child(5)
                 $('div[itemprop="description"] > ul > li').each((index, element) => {
                     const productDetailSpec = element.firstChild.data;
                     const productDetailSpecArray = productDetailSpec && productDetailSpec.split(/,|;|\s/g);
-
                     if (productDetailSpecArray && productDetailSpecArray.length > 0) {
                         productDetailSpecArray.forEach((e, i) => {
-                            if ('ACEA' === e) {
+                            if (e.toUpperCase().indexOf('ACEA') > -1) {
                                 acea = !acea && productDetailSpecArray.length > i ? productDetailSpecArray[i + 1] : acea;
                             }
                         })
                     }
 
                 });
-                grade = grade ? grade : spec.grade ? spec.grade : grade;
-                size = size ? size : spec.size ? spec.size : size;
-
+                acea = acea ? acea : spec.acea ? spec.acea : acea;
                 //TODO delivery 
                 const deliveryInfo = scrapService.getData($, `${productLocation} > div:nth-child(2) > div.list-row > span:nth-child(3)`);
                 const deliveryInfoArray = deliveryInfo.match(/£\d+(?:\.\d+)?/g);
@@ -114,15 +114,19 @@ var scrapEuroCarParts = function () {
 
         //remove oil
         titleTemp = titleTemp.replace(/(Engine)|(Oil)|-/ig, '').trim();
+
         let titleArray = titleTemp.split(' ');
 
         spec.company = titleArray[0];
         if (titleArray.length > 1) {
             spec.brand = titleArray[1];
         }
+
         if (titleArray.length > 2) {
             spec.variant = titleArray.slice(2).join(' ');
+            spec.acea = titleArray.slice(2).filter(s => s.match(/([A-Za-z]\d\/?)*/g)).join('');
         }
+
         return spec;
     }
 

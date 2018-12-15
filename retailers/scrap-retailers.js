@@ -1,6 +1,6 @@
 const scrapHalfords = require('./scrap-halfords');
 const scrapEuroCarParts = require('./scrap-euro-car-parts');
 module.exports = function scrapRetailers() {
-   // new scrapHalfords();
+   new scrapHalfords();
    new scrapEuroCarParts();
 }
