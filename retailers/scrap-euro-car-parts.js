@@ -124,7 +124,9 @@ var scrapEuroCarParts = function () {
 
         if (titleArray.length > 2) {
             spec.variant = titleArray.slice(2).join(' ');
-            spec.acea = titleArray.slice(2).filter(s => s.match(/([A-Za-z]\d\/?)*/g)).join('');
+            const isAcea = /([A-Za-z]\d\/?)/g;
+            spec.acea = titleArray.slice(2).filter(s => isAcea.test(s)).join('');
+            spec.acea = spec.acea.replace(/\(|\)/g, '');
         }
 
         return spec;
