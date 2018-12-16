@@ -60,10 +60,24 @@ var scrapEuroCarParts = function () {
 
                 let grade = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(2) > span.value');
                 grade = grade ? grade : spec.grade ? spec.grade : grade;
+                grade = grade ? grade.toUpperCase() : grade;
+                if (grade && grade.indexOf('-') === -1) {
+                    const indexW = grade.indexOf('W');
+                    if (indexW > -1) {
+                        grade = `${grade.substring(0, indexW + 1)}-${grade.substring(indexW + 1, grade.length)}`;
+                    }
+
+                }
                 let size = scrapService.getData($, '#tablist1-panel2 > div > div:nth-child(4) > span.value');
                 size = size ? size : spec.size ? spec.size : size;
+                const sizeNum = size ? parseInt(size, 10) : 0;
+                if (sizeNum > 1) {
+                    size = size.replace(/ltr/i, ' Litres');
+                } else if (sizeNum > 0) {
+                    size = size.replace(/ltr/i, ' Litre');
+                }
                 let acea = '';
-                //#tablist1-panel1 > ul > li:nth-child(5)
+                //#tablist1-panel1 > ul > li:nth-child(5)                
                 $('div[itemprop="description"] > ul > li').each((index, element) => {
                     const productDetailSpec = element.firstChild.data;
                     const productDetailSpecArray = productDetailSpec && productDetailSpec.split(/,|;|\s/g);
