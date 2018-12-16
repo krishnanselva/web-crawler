@@ -1,5 +1,5 @@
 const {
-    BehaviorSubject} = require('rxjs');
+    BehaviorSubject } = require('rxjs');
 const {
     resolve
 } = require('url');
@@ -36,7 +36,27 @@ var scrapHalfords = function () {
                 let size = getSpecData($, specDataSelector, 'Size:');
                 const acea = getSpecData($, specDataSelector, 'ACEA:');
                 grade = grade ? grade : spec.grade ? spec.grade : grade;
+
+                grade = grade ? grade.toUpperCase().replace(/\//, '-') : grade;
+                if (grade && grade.indexOf('-') === -1) {
+                    const indexW = grade.indexOf('W');
+                    if (indexW > -1) {
+                        grade = `${grade.substring(0, indexW + 1)}-${grade.substring(indexW + 1, grade.length)}`;
+                    }
+
+                }
+
                 size = size ? size : spec.size ? spec.size : size;
+
+                if (size && /\d+\s?L/i.test(size) && size.indexOf('itre') == -1) {
+                    const sizeNum = parseInt(size, 10);
+                    if (sizeNum > 1) {
+                        size = size.replace(/L/i, ' Litres');
+                    } else if (sizeNum > 0) {
+                        size = size.replace(/L/i, ' Litre');
+                    }
+                }
+
                 const deliveryInfo = scrapService.getData($, '#deliveryOptions > tbody > tr:nth-child(1) > td:nth-child(2) > h6');
                 const deliveryInfoArray = deliveryInfo.match(/£\d+(?:\.\d+)?/g);
                 const deliveryCharge = deliveryInfoArray && deliveryInfoArray.length > 0 ? deliveryInfoArray[0] : '';
