@@ -141,5 +141,10 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
         const rowArray = Object.keys(domainObject).map(col => domainObject[col]);
         return `${rowArray}\n`;
     }
+
+    this.getFirstNumber = function getFirstNumber(str) {
+        const strArray = str.match(/\d+/);
+        return strArray.length > 0 ? strArray[0] : '';
+    };
 };
 module.exports = scrapService;
