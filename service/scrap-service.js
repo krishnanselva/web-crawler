@@ -146,5 +146,13 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
         const strArray = str.match(/\d+/);
         return strArray.length > 0 ? strArray[0] : '';
     };
+
+    this.encode = function encode(unencodedUrl) {
+        return unencodedUrl ? encodeURIComponent(unencodedUrl).replace(/'/g, "%27").replace(/"/g, "%22") : '';
+    };
+    this.decode = function decode(encodedUrl) {
+        return encodedUrl ? decodeURIComponent(encodedUrl.replace(/\+/g, " ")) : '';
+    }
+
 };
 module.exports = scrapService;
