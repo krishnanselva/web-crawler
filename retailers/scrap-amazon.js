@@ -26,58 +26,55 @@ var scrapAmazon = function () {
                 allUrl$.next(absoluteUrl);
             }
         });
-        //#merchant-info
-        const titleSelector = `#productTitle`;
-        if ($(titleSelector)) {
-            let title = scrapService.getData($, titleSelector);
-            if (title) {
-                title = title.replace(/,\s?/g, ' ');
-                console.log('#merchant-info',scrapService.getData($,'#merchant-info'));
-                console.log('#price-shipping-message > b',scrapService.getData($,'#price-shipping-message > b:first-child'));
-                const spec = getProductSpec(title);
-                let sellPrice = scrapService.getData($, `#price_inside_buybox`);
-                if (!sellPrice && $('cerberus-data-metrics').length > 0) {
-                    const sellPriceISOCurrency = $('cerberus-data-metrics').attr('data-asin-currency-code');
-                    const sellPriceValue = $('cerberus-data-metrics').attr('data-asin-price');
-                    const sellPriceSymbolCurrency = getSymbolFromCurrency(sellPriceISOCurrency);
-                    sellPrice = sellPriceSymbolCurrency && sellPriceValue ? `${sellPriceSymbolCurrency}${sellPriceValue}` : ``;
-                }
-                const wasPrice = scrapService.getData($, `#price > table > tbody > tr:nth-child(1) > td.a-span12.a-color-secondary.a-size-base > span.a-text-strike`);
-                let saving = scrapService.getData($, `#regularprice_savings > td.a-span12.a-color-price.a-size-base`);
-                saving = saving ? saving.replace(/(\s?\(.*\))/g, '') : saving;
-                const prodDescSelector = '#aplus > div > div.celwidget.aplus-module.module-1 > div > div.a-expander-content.a-expander-partial-collapse-content > div.aplus-module-wrapper.apm-fixed-width > div > div > div.apm-centerthirdcol.apm-wrap > p';
-                let prodDesc = getProductSpec(scrapService.getData($, `${prodDescSelector}:last-child`));
-                if (!prodDesc.acea && $('#productDescription > p').length > 0) {
-                    prodDesc = getProductSpec(scrapService.getData($, `#productDescription > p:last-child`));
-                }
-                let grade = spec.grade ? spec.grade : prodDesc.grade ? prodDesc.grade : '';
-                grade = grade ? grade.toUpperCase().replace('/', '-') : grade;
-                if (grade && grade.indexOf('-') === -1) {
-                    const indexW = grade.indexOf('W');
-                    if (indexW > -1) {
-                        grade = `${grade.substring(0, indexW + 1)}-${grade.substring(indexW + 1, grade.length)}`;
-                    }
-                }
-                let size = prodDesc.size ? prodDesc.size : spec.size ? spec.size : '';
-                const sizeNum = size ? parseInt(size, 10) : 0;
-                if (sizeNum > 1) {
-                    size = size.replace(/L(itre)?/i, ' Litres');
-                } else if (sizeNum > 0) {
-                    size = size.replace(/L(itre)?/i, ' Litre');
-                }
-                let acea = prodDesc.acea ? prodDesc.acea : spec.acea ? spec.acea : '';
-                //TODO delivery    
-                const deliveryCharge = '';
-                const freeDeliveryThreshold = '';
-                const sku = scrapService.getData($, `#prodDetails > div.wrapper.GBlocale > div.column.col2 > div:nth-child(1) > div.content.pdClearfix > div > div > table > tbody > tr:nth-child(1) > td.value`);
-                const promotion = '';
-                if (sellPrice && grade) {
-                    scrapService.appendRow(title, spec.company, spec.brand, spec.variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, url, sku, promotion);
+        let soldBy = scrapService.getData($, `#merchant-info`);
+        let delivery = scrapService.getData($, `#price-shipping-message > b:first-child`);
+        let title = scrapService.getData($, `#productTitle`);
+        if (delivery.search(/(FREE)/ig) > -1 && soldBy.search(/(sold\sby\sAmazon)/ig) > -1 && title) {
+            title = title.replace(/,\s?/g, ' ');
+            const spec = getProductSpec(title);
+            let sellPrice = scrapService.getData($, `#price_inside_buybox`);
+            if (!sellPrice && $('cerberus-data-metrics').length > 0) {
+                const sellPriceISOCurrency = $('cerberus-data-metrics').attr('data-asin-currency-code');
+                const sellPriceValue = $('cerberus-data-metrics').attr('data-asin-price');
+                const sellPriceSymbolCurrency = getSymbolFromCurrency(sellPriceISOCurrency);
+                sellPrice = sellPriceSymbolCurrency && sellPriceValue ? `${sellPriceSymbolCurrency}${sellPriceValue}` : ``;
+            }
+            const wasPrice = scrapService.getData($, `#price > table > tbody > tr:nth-child(1) > td.a-span12.a-color-secondary.a-size-base > span.a-text-strike`);
+            let saving = scrapService.getData($, `#regularprice_savings > td.a-span12.a-color-price.a-size-base`);
+            saving = saving ? saving.replace(/(\s?\(.*\))/g, '') : saving;
+            const prodDescSelector = '#aplus > div > div.celwidget.aplus-module.module-1 > div > div.a-expander-content.a-expander-partial-collapse-content > div.aplus-module-wrapper.apm-fixed-width > div > div > div.apm-centerthirdcol.apm-wrap > p';
+            let prodDesc = getProductSpec(scrapService.getData($, `${prodDescSelector}:last-child`));
+            if (!prodDesc.acea && $('#productDescription > p').length > 0) {
+                prodDesc = getProductSpec(scrapService.getData($, `#productDescription > p:last-child`));
+            }
+            let grade = spec.grade ? spec.grade : prodDesc.grade ? prodDesc.grade : '';
+            grade = grade ? grade.toUpperCase().replace('/', '-') : grade;
+            if (grade && grade.indexOf('-') === -1) {
+                const indexW = grade.indexOf('W');
+                if (indexW > -1) {
+                    grade = `${grade.substring(0, indexW + 1)}-${grade.substring(indexW + 1, grade.length)}`;
                 }
             }
-
+            let size = prodDesc.size ? prodDesc.size : spec.size ? spec.size : '';
+            const sizeNum = size ? parseInt(size, 10) : 0;
+            if (sizeNum > 1) {
+                size = size.replace(/L(itre)?/i, ' Litres');
+            } else if (sizeNum > 0) {
+                size = size.replace(/L(itre)?/i, ' Litre');
+            }
+            let acea = prodDesc.acea ? prodDesc.acea : spec.acea ? spec.acea : '';
+            //TODO delivery    
+            const deliveryCharge = '';
+            const freeDeliveryThreshold = '';
+            const sku = scrapService.getData($, `#prodDetails > div.wrapper.GBlocale > div.column.col2 > div:nth-child(1) > div.content.pdClearfix > div > div > table > tbody > tr:nth-child(1) > td.value`);
+            const promotion = '';
+            if (sellPrice && grade) {
+                scrapService.appendRow(title, spec.company, spec.brand, spec.variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, url, sku, promotion);
+            }
         }
+
     }
+
 
     function getProductSpec(title) {
         const spec = new ProductSpec();
