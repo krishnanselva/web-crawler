@@ -73,7 +73,7 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
                             const {
                                 uri
                             } = error.options;
-                            console.log(`Error requesting ${uri}.`);
+                            console.log(`Error requesting ${uri} due to ${error}`);
                             // return null on error
                             return of(null);
                         }),
