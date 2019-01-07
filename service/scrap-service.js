@@ -128,9 +128,11 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
     }
 
     this.appendRow = function appendRow(title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, url, sku, promotion) {
-        const product = new Product(title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, retailer, country, url, sku, promotion);
-        writeToFile(getRowData(product));
-    }
+        if (sellPrice && grade && size) {
+            const product = new Product(title, company, brand, variant, sellPrice, saving, wasPrice, grade, size, acea, freeDeliveryThreshold, deliveryCharge, retailer, country, url, sku, promotion);
+            writeToFile(getRowData(product));
+        }
+    };
 
     function getRowHeader(domainObject) {
         const rowArray = Object.keys(domainObject);
@@ -152,7 +154,7 @@ var scrapService = function (retailer, country, allUrl$, scrapUrl) {
     };
     this.decode = function decode(encodedUrl) {
         return encodedUrl ? decodeURIComponent(encodedUrl.replace(/\+/g, " ")) : '';
-    }
+    };
 
 };
 module.exports = scrapService;

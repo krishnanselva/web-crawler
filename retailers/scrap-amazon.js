@@ -11,7 +11,7 @@ const ScrapService = require('../service/scrap-service');
 var scrapAmazon = function () {
 
     let baseUrl = 'https://www.amazon.co.uk/s/s/ref=sr_nr_p_76_0?fst=as:off&rh=n:248877031,n:301315031,n:2494718031,n:303979031,k:engine oil,p_76:419158031&keywords=engine oil&ie=UTF8&qid=1545064211&rnid=419157031';
-    // baseUrl = 'https://www.amazon.co.uk/Comma-CLA20505L-20W-Classic-Motor/dp/B002RPJ67E/ref=sr_1_1?s=automotive&ie=UTF8&qid=1545141807&sr=1-1&keywords=B002RPJ67E';
+    // baseUrl = 'https://www.amazon.co.uk/Comma-XTC5L-XTech-Fully-Synthetic/dp/B002RPMQIK/ref=sr_1_2/259-2427219-8887507?s=automotive&rps=1&ie=UTF8&qid=1545396693&sr=1-2&keywords=engine+oil&refinements=p_76%3A419158031';
     const allUrl$ = new BehaviorSubject(baseUrl);
     const scrapService = new ScrapService('Amazon', 'UK', allUrl$, scrapUrl);
 
@@ -31,7 +31,8 @@ var scrapAmazon = function () {
         let title = scrapService.getData($, `#productTitle`);
         if (delivery.search(/(FREE)/ig) > -1 && soldBy.search(/(sold\sby\sAmazon)/ig) > -1 && title) {
             title = title.replace(/,\s?/g, ' ');
-            const spec = getProductSpec(title);
+            const isAceaTitle = /((ACEA\s)?([A-Za-z]\d.?)+)/g;
+            const spec = getProductSpec(title, isAceaTitle);
             let sellPrice = scrapService.getData($, `#price_inside_buybox`);
             if (!sellPrice && $('cerberus-data-metrics').length > 0) {
                 const sellPriceISOCurrency = $('cerberus-data-metrics').attr('data-asin-currency-code');
@@ -43,9 +44,10 @@ var scrapAmazon = function () {
             let saving = scrapService.getData($, `#regularprice_savings > td.a-span12.a-color-price.a-size-base`);
             saving = saving ? saving.replace(/(\s?\(.*\))/g, '') : saving;
             const prodDescSelector = '#aplus > div > div.celwidget.aplus-module.module-1 > div > div.a-expander-content.a-expander-partial-collapse-content > div.aplus-module-wrapper.apm-fixed-width > div > div > div.apm-centerthirdcol.apm-wrap > p';
-            let prodDesc = getProductSpec(scrapService.getData($, `${prodDescSelector}:last-child`));
+            const isAcea = /(ACEA\s([A-Za-z]\d.?)+)/g;
+            let prodDesc = getProductSpec(scrapService.getData($, `${prodDescSelector}:last-child`), isAcea);
             if (!prodDesc.acea && $('#productDescription > p').length > 0) {
-                prodDesc = getProductSpec(scrapService.getData($, `#productDescription > p:last-child`));
+                prodDesc = getProductSpec(scrapService.getData($, `#productDescription > p:last-child`), isAcea);
             }
             let grade = spec.grade ? spec.grade : prodDesc.grade ? prodDesc.grade : '';
             grade = grade ? grade.toUpperCase().replace('/', '-') : grade;
@@ -56,13 +58,23 @@ var scrapAmazon = function () {
                 }
             }
             let size = prodDesc.size ? prodDesc.size : spec.size ? spec.size : '';
+            if (!size) {
+                size = scrapService.getData($, `#variation_size_name > div > span.selection`);
+            }
             const sizeNum = size ? parseInt(size, 10) : 0;
             if (sizeNum > 1) {
-                size = size.replace(/L(itre)?/i, ' Litres');
+                size = size.replace(/L(itres?)?/i, ' Litres');
             } else if (sizeNum > 0) {
                 size = size.replace(/L(itre)?/i, ' Litre');
             }
-            let acea = prodDesc.acea ? prodDesc.acea : spec.acea ? spec.acea : '';
+
+            let acea = '';
+
+            for (let i = 1; !acea && i <= $('#feature-bullets > ul > li').length; i++) {
+                const feature = scrapService.getData($, `#feature-bullets > ul > li:nth-child(${i}) > span`);
+                acea = getAcea(feature, isAcea);
+            }
+            acea = acea ? acea : prodDesc.acea ? prodDesc.acea : spec.acea ? spec.acea : '';
             //TODO delivery    
             const deliveryCharge = '';
             const freeDeliveryThreshold = '';
@@ -76,7 +88,7 @@ var scrapAmazon = function () {
     }
 
 
-    function getProductSpec(title) {
+    function getProductSpec(title, isAcea) {
         const spec = new ProductSpec();
         if (title && title.trim().length > 0) {
 
@@ -90,10 +102,10 @@ var scrapAmazon = function () {
             }
 
             //remove size
-            const sizeReg = /(\d+\s?L)/ig;
+            const sizeReg = /(\s(\d+\.)?\d+\s?L)/ig;
             const size = titleTemp.match(sizeReg);
             if (size && size.length > 0) {
-                spec.size = size[0];
+                spec.size = size[size.length - 1];
                 titleTemp = titleTemp.replace(sizeReg, '');
             }
 
@@ -109,13 +121,20 @@ var scrapAmazon = function () {
 
             if (titleArray.length > 2) {
                 spec.variant = titleArray.slice(2).filter(s => s.trim().length > 0).join(' ');
-                const isAcea = /(ACEA\s([A-Za-z]\d.?)+)/g;
-                const aceaArray = title.match(isAcea);
-                spec.acea = aceaArray && aceaArray.length > 0 ? aceaArray[0] : '';
-                spec.acea = spec.acea.replace(/(ACEA\s?)|\(|\)|,|;|\./g, '');
+                spec.acea = getAcea(title, isAcea);
             }
         }
         return spec;
+    }
+
+    function getAcea(title, isAcea) {
+        const aceaArray = title.match(isAcea);
+        let acea = aceaArray && aceaArray.length > 0 ? aceaArray.join('/') : '';
+        acea = acea.split(/\/|-/).join('/');
+        acea = acea.split(/\/+/).join('/');
+        acea = acea.replace(/(ACEA\s?)|\(|\)|,|;|\.|\|/g, '');
+        acea = acea ? acea.trim() : acea;
+        return acea;
     }
 
 };
